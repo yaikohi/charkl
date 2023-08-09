@@ -17,50 +17,68 @@ const happybirthdays = [
   "hpy bday",
   "parabens",
 ];
+
+function findHappyBirthdayMessageMatch(
+  { message }: { message: string },
+): boolean {
+  return happybirthdays.some((m) => message.includes(m));
+}
 // listen for the client to be ready
 client.once(Events.ClientReady, (c) => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
 });
-client.on("messageCreate", (msg) => {
+client.on("messageCreate", async(msg) => {
   const parsedMessage = msg.content.toLowerCase().replace(
     /[^a-zA-Z0-9 ]/g,
     "",
   );
 
-  const isHbdMessage = happybirthdays.includes(parsedMessage);
+  const isHbdMessage = findHappyBirthdayMessageMatch({
+    message: parsedMessage,
+  });
+
+  const mention = msg.mentions.members;
+
+  console.log("\n____");
+  console.log({
+    message: msg.content,
+    parsedMessage,
+    author: msg.author.username,
+    date: new Date().toLocaleDateString(),
+  });
+  console.log("____\n");
 
   if (!client.user) {
     console.log("No client.user!");
     return;
   }
-
   const isBotMsg = client?.user.id === msg.author.id;
 
-  if (isBotMsg) {
-    console.log("Message is from bot; return early.");
+  if (mention && !isBotMsg && isHbdMessage) {
+    console.log("Mention + Not a bot msg + isHbdMsg");
+    mention.every((mntn) => {
+      !isBotMsg && msg.reply(`Happy birthday ${mntn.user}!`);
+      return;
+    });
     return;
   }
-
-  const mention = msg.mentions.members;
+  if (!isBotMsg && isHbdMessage) {
+    console.log(
+      `Happy birthday was said; posting message: ${
+        new Date().toLocaleDateString()
+      } - ${client.user}: Happy birthday!`,
+    );
+    msg.channel.send("Happy birthday!");
+    return;
+  }
 
   if (!mention) {
     console.log("Message didn't contain any mentions.");
     return;
   }
 
-  if (mention && !isBotMsg && isHbdMessage) {
-    mention.every((mntn) => {
-      console.log(
-        `${new Date().toLocaleDateString()}${msg.author}: ${msg.content}`,
-      );
-      !isBotMsg && msg.reply(`Happy birthday ${mntn.user}!`);
-      return;
-    });
-  }
-
-  if (!isBotMsg && isHbdMessage) {
-    console.log("Happy birthday was said; posting message.");
-    msg.channel.send("Happy birthday!");
+  if (isBotMsg) {
+    console.log("isBotMsg");
     return;
   }
 });
