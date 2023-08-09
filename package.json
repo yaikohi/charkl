@@ -2,6 +2,10 @@
   "name": "charkl",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --hot index.ts"
+  },
   "devDependencies": {
     "bun-types": "latest"
   },

@@ -10,11 +10,25 @@ const client = new Client({
   ],
 });
 
+const happybirthdays = [
+  "hbd",
+  "happy birthday",
+  "happy bday",
+  "hpy bday",
+  "parabens",
+];
 // listen for the client to be ready
 client.once(Events.ClientReady, (c) => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 client.on("messageCreate", (msg) => {
+  const parsedMessage = msg.content.toLowerCase().replace(
+    /[^a-zA-Z0-9 ]/g,
+    "",
+  );
+
+  const isHbdMessage = happybirthdays.includes(parsedMessage);
+
   if (!client.user) {
     console.log("No client.user!");
     return;
@@ -34,22 +48,20 @@ client.on("messageCreate", (msg) => {
     return;
   }
 
-  if (mention && !isBotMsg) {
+  if (mention && !isBotMsg && isHbdMessage) {
     mention.every((mntn) => {
-      console.log("Mention?");
-      console.log(mntn.user.id);
-
+      console.log(
+        `${new Date().toLocaleDateString()}${msg.author}: ${msg.content}`,
+      );
       !isBotMsg && msg.reply(`Happy birthday ${mntn.user}!`);
       return;
     });
-
-    return;
   }
-  if (!isBotMsg && msg.content.includes("happy birthday")) {
+
+  if (!isBotMsg && isHbdMessage) {
     console.log("Happy birthday was said; posting message.");
     msg.channel.send("Happy birthday!");
     return;
   }
 });
-// login with the token from .env.local
 client.login(process.env.DISCORD_BOT_TOKEN);
